@@ -1,0 +1,17 @@
+name: xwordgen
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  # Core stack
+  - python>=3.6
+  - numpy
+  - scipy
+  - matplotlib
+  - keras
+  - pandas
+  - nltk
+  - pip
+
+  # Testing
+  - pytest
