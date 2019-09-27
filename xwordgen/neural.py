@@ -1,13 +1,19 @@
-# Contains :class: `NeuralLanguageModel` which implements a
-# 'neural language model' to generate words
+"""
+Contains :class: `NeuralLanguageModel` which implements a
+'neural language model' to generate words
+
+Author
+------
+Aashish Yadavally
+"""
 
 
-import nltk
 import math
-import numpy as np
 from pathlib import Path
-from nltk.corpus import brown
 from collections import Counter
+import numpy as np
+import nltk
+from nltk.corpus import brown
 from keras.models import Sequential, model_from_json
 from keras.layers import Dense, Activation, Embedding, LSTM
 from keras.utils import to_categorical
@@ -16,9 +22,18 @@ from keras.preprocessing.text import one_hot
 
 class NeuralLanguageModel:
     """
+    Implements LSTM based neural language model, trained on the Brown Corpus.
+
+    Parameters
+    ----------
+        params (dict):
+            Parameters of language model
+        path (pathlib.Path):
+            Path to saved model directory
     """
     def __init__(self, params, path):
         """
+        Initializes :class: `NeuralLanguageModel`
 
         Returns
         ---------
@@ -30,7 +45,6 @@ class NeuralLanguageModel:
         model_path = path / f'{model_name}.h5'
 
         processed_data = self.process_data()
-
         if model_path.exists():
             # Reading model architecture from JSON and weights from hd5
             with open(path / f'{model_name}.json', 'r') as f:
@@ -41,13 +55,17 @@ class NeuralLanguageModel:
         else:
             train, test = self.split_data(processed_data)
             # Creating sequences of length (n + 1)
-            train_sequences = [train[i-self.n : i+1] for i in range(self.n, len(train))]
-            test_sequences = [test[i-self.n : i+1] for i in range(self.n, len(test))]
+            train_sequences = [train[i-self.n : i+1] for i in
+                               range(self.n, len(train))]
+            test_sequences = [test[i-self.n : i+1] for i in
+                              range(self.n, len(test))]
             # Fitting the model
             self.model = self.LSTM()
-            print(f'Training model with parameters: \n {params}')         
-            self.model.fit_generator(self.xy_fit_generator(train_sequences, batch_size=params['batch_size']),
-                                     steps_per_epoch=math.ceil(len(train_sequences)/params['batch_size']), epochs=params['epochs'])    
+            print(f'Training model with parameters: \n {params}')
+            self.model.fit_generator(self.xy_fit_generator(train_sequences,
+                                                           batch_size=params['batch_size']),
+                                     steps_per_epoch=math.ceil(len(train_sequences)/params['batch_size']),
+                                     epochs=params['epochs'])
             path.mkdir(exist_ok=True)
             self.model.save_weights(path / f'{model_name}.h5')
             # Save the model architecture
@@ -69,9 +87,11 @@ class NeuralLanguageModel:
         word_list = brown.words()
         word_freq = dict(Counter([word.lower() for word in word_list]))
         # Computing words with frequency <=3
-        self.low_freq_words = {word: freq for word, freq in word_freq.items() if freq <= 3}.keys()
+        self.low_freq_words = {word: freq for word, freq in
+                               word_freq.items() if freq <= 3}.keys()
         # Removing low frequency words
-        relevant_words = [word for word in word_list if word not in self.low_freq_words]
+        relevant_words = [word for word in word_list if word not in
+                          self.low_freq_words]
         relevant_text = " ".join(relevant_words)
         self.dictionary = list(set(relevant_words))
         # One-hot encoding the text corpus
@@ -120,13 +140,18 @@ class NeuralLanguageModel:
                 y is array of categorical classes of next word in dictionary
         """
         for start_index in range(0, len(sequences), batch_size):
-            x = np.array([sequence[:-1] for sequence in sequences[start_index: start_index + batch_size]])
-            y = np.array([to_categorical(sequence[-1], num_classes=len(self.dictionary), dtype='uint16') for sequence in sequences[start_index: start_index + batch_size]])
+            x = np.array([sequence[:-1] for sequence in
+                          sequences[start_index: start_index + batch_size]])
+            y = np.array([to_categorical(sequence[-1],
+                                         num_classes=len(self.dictionary),
+                                         dtype='uint16')
+                          for sequence in sequences[start_index: start_index + batch_size]])
             yield (x, y)
 
 
     def LSTM(self):
         """
+        Defines a Keras LSTM model.
 
         Returns
         -------
@@ -139,6 +164,7 @@ class NeuralLanguageModel:
         model.add(LSTM(100))
         model.add(Dense(100, activation='relu'))
         model.add(Dense(len(self.dictionary), activation='softmax'))
-        model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
+        model.compile(loss='categorical_crossentropy', optimizer='adam',
+                      metrics=['accuracy'])
         print(model.summary)
         return model
