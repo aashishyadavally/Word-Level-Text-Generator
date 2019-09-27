@@ -25,7 +25,7 @@ setup(
 	# Packages can be manually mentioned, or `setuptools.find_packages`
 	# can be used for this purpose.
 	packages=find_packages(),
-	entry_points={'console_scripts': ['xwordgen = xwordgen.__main__:main()']},
+	entry_points={'console_scripts': ['xwordgen = xwordgen.__main__:main']},
 	description='Word Level Text Generation',
 	long_description=long_description,
 	# Corresponds to the Home Page of the metadata field
